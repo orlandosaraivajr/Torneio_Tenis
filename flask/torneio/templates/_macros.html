@@ -1,0 +1,106 @@
+{# Componentes reutilizáveis #}
+
+{% macro avatar(jogador, classe='avatar') -%}
+{% if jogador.foto %}<img class="{{ classe }}" src="{{ url_for('main.upload', caminho=jogador.foto) }}" alt="">{% else %}<span class="{{ classe }}">{{ jogador.iniciais }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro classe_lado(p, inscricao_id, inscricao) -%}
+{% if not inscricao %}indefinido{% elif p.vencedor_id == inscricao_id %}vencedor{% elif p.vencedor_id %}perdedor{% endif %}
+{%- endmacro %}
+
+{# Linha de jogo no estilo placar: tempo | jogadores | sets #}
+{% macro linha_jogo(p, voltar='partidas') %}
+{% set editavel = p.editavel %}
+{% set tag = 'a' if editavel else 'div' %}
+<{{ tag }} class="jogo{{ ' bye' if p.is_bye }}"{% if editavel %} href="{{ url_for('partidas.resultado', partida_id=p.id, voltar=voltar) }}" title="Registrar resultado"{% endif %}>
+  {% if p.status == 'ANDAMENTO' %}<div class="tempo vivo">AO VIVO</div>
+  {% elif p.status == 'WO' %}<div class="tempo">W.O.</div>
+  {% elif p.status == 'ABANDONO' %}<div class="tempo">Aband.</div>
+  {% elif p.encerrada %}<div class="tempo">{{ 'Bye' if p.is_bye else 'Enc.' }}</div>
+  {% elif p.data_hora %}<div class="tempo">{{ p.data_hora|datahora('%d/%m') }}<br><b>{{ p.data_hora|datahora('%H:%M') }}</b></div>
+  {% else %}<div class="tempo">—</div>{% endif %}
+
+  <div class="lados">
+    {% for insc, insc_id, nome in [(p.inscricao_1, p.inscricao_1_id, p.nome_1), (p.inscricao_2, p.inscricao_2_id, p.nome_2)] %}
+    <div class="lado {{ classe_lado(p, insc_id, insc) }}">
+      {% if insc %}{{ avatar(insc.jogador, 'mini') }}{% endif %}
+      <span class="nome">{{ nome }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="placar">
+    {% if p.sets %}
+    {% set total = p.sets_vencidos %}
+    <div class="col total{{ ' vivo' if p.status == 'ANDAMENTO' }}"><span>{{ total[0] }}</span><span>{{ total[1] }}</span></div>
+    {% for s in p.sets %}
+    <div class="col">
+      <span class="{{ 'ganhou' if s[0] > s[1] }}">{{ s[0] }}{% if s[2] is not none and s[0] < s[1] %}<sup>{{ s[2] }}</sup>{% endif %}</span>
+      <span class="{{ 'ganhou' if s[1] > s[0] }}">{{ s[1] }}{% if s[2] is not none and s[1] < s[0] %}<sup>{{ s[2] }}</sup>{% endif %}</span>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+  <div class="seta">{% if editavel %}<span class="material-symbols-outlined">chevron_right</span>{% endif %}</div>
+</{{ tag }}>
+{% endmacro %}
+
+{# Caixa da chave (bracket) #}
+{% macro caixa_chave(p) %}
+{% set editavel = p.editavel %}
+{% set tag = 'a' if editavel else 'div' %}
+<{{ tag }} class="caixa{{ ' final' if p.rodada == 'F' }}{{ ' bye' if p.is_bye }}"{% if editavel %} href="{{ url_for('partidas.resultado', partida_id=p.id, voltar='chave') }}"{% endif %}>
+  {% for insc, insc_id, nome, idx in [(p.inscricao_1, p.inscricao_1_id, p.nome_1, 0), (p.inscricao_2, p.inscricao_2_id, p.nome_2, 1)] %}
+  <div class="lado {{ classe_lado(p, insc_id, insc) }}">
+    <span class="nome">{{ nome }}</span>
+    <span class="games">{% for s in p.sets %}<span class="{{ 'ganhou' if s[idx] > s[1 - idx] }}">{{ s[idx] }}{% if s[2] is not none and s[idx] < s[1 - idx] %}<sup>{{ s[2] }}</sup>{% endif %}</span>{% endfor %}</span>
+  </div>
+  {% endfor %}
+  <div class="rodape">
+    {% if p.is_bye %}<span>Avanço direto</span>{% elif p.status == 'ANDAMENTO' %}<span class="vivo">● Ao vivo</span>{% else %}<span>{{ p.status_label }}</span>{% endif %}
+    <span>{% if p.data_hora %}{{ p.data_hora|datahora('%d/%m %H:%M') }}{% endif %}</span>
+  </div>
+</{{ tag }}>
+{% endmacro %}
+
+{# Tabela de classificação #}
+{% macro tabela(linhas, classificados=0) %}
+<div class="tabela-wrap">
+<table>
+  <thead><tr>
+    <th class="num">#</th><th>Jogador</th>
+    <th class="num" title="Jogos">J</th><th class="num" title="Vitórias">V</th><th class="num" title="Derrotas">D</th>
+    <th class="num" title="Sets pró-contra">Sets</th><th class="num" title="Saldo de sets">SS</th><th class="num" title="Saldo de games">SG</th>
+  </tr></thead>
+  <tbody>
+  {% for l in linhas %}
+    <tr>
+      <td class="num"><span class="pos{{ ' classifica' if loop.index <= classificados }}">{{ loop.index }}</span></td>
+      <td><a class="pessoa" href="{{ l.inscricao.jogador.url }}">{{ avatar(l.inscricao.jogador, 'mini') }}{{ l.inscricao.jogador.nome }}</a></td>
+      <td class="num">{{ l.jogos }}</td>
+      <td class="num"><b>{{ l.vitorias }}</b></td>
+      <td class="num">{{ l.derrotas }}</td>
+      <td class="num">{{ l.sets_pro }}:{{ l.sets_contra }}</td>
+      <td class="num">{{ l.saldo_sets }}</td>
+      <td class="num">{{ l.saldo_games }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if classificados %}<div class="legenda"><span class="pos classifica"></span>{{ 'Campeão' if classificados == 1 else 'Classificados para o mata-mata' }}</div>{% endif %}
+{% endmacro %}
+
+{# Campos de um formulário WTForms #}
+{% macro campos(form) %}
+{{ form.hidden_tag() }}
+{% for erro in form.form_errors %}<div class="erro-geral">{{ erro }}</div>{% endfor %}
+{% for campo in form if campo.type not in ('CSRFTokenField', 'HiddenField') %}
+<div class="campo{{ ' com-erro' if campo.errors }}">
+  {{ campo.label }}{% if campo.flags.required %} *{% endif %}
+  {{ campo() }}
+  {% if campo.description %}<div class="ajuda">{{ campo.description }}</div>{% endif %}
+  {% for erro in campo.errors %}<div class="erro">{{ erro }}</div>{% endfor %}
+</div>
+{% endfor %}
+{% endmacro %}

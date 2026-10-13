@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}Jogadores{% endblock %}
+
+{% block conteudo %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap">
+  <h1>Jogadores</h1>
+  <a class="btn" href="{{ url_for('jogadores.formulario') }}"><span class="material-symbols-outlined">person_add</span>Novo jogador</a>
+</div>
+
+<div class="painel">
+  <form method="get" class="pilulas" style="align-items:center">
+    <span class="material-symbols-outlined muted">filter_list</span>
+    <input type="text" name="q" value="{{ q }}" placeholder="Filtrar por nome" style="border:1px solid var(--borda);border-radius:14px;padding:4px 12px;font:inherit;flex:1;max-width:280px">
+  </form>
+  {% if linhas %}
+  <div class="tabela-wrap">
+    <table>
+      <thead><tr><th>Jogador</th><th class="num">Torneios</th><th class="num">Vitórias</th><th></th></tr></thead>
+      <tbody>
+      {% for l in linhas %}
+        <tr>
+          <td><a class="pessoa" href="{{ l.jogador.url }}">{{ m.avatar(l.jogador) }}<b>{{ l.jogador.nome }}</b></a></td>
+          <td class="num">{{ l.torneios }}</td>
+          <td class="num">{{ l.vitorias }}</td>
+          <td style="text-align:right"><a class="btn fantasma pequeno" href="{{ url_for('jogadores.formulario', jogador_id=l.jogador.id) }}">Editar</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="material-symbols-outlined">person_search</span>Nenhum jogador encontrado.</div>
+  {% endif %}
+</div>
+{% endblock %}

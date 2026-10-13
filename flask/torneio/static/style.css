@@ -1,0 +1,256 @@
+/* Visual de placar esportivo: cabeçalho escuro, listas compactas de jogos, acento verde */
+:root {
+  --topo: #00141e;
+  --topo-2: #0b2633;
+  --verde: #06aa48;
+  --verde-escuro: #05893a;
+  --verde-claro: #e6f6ec;
+  --vivo: #ff0046;
+  --texto: #1d2429;
+  --texto-2: #6b7480;
+  --borda: #dfe3e8;
+  --linha: #eef1f4;
+  --fundo: #eef1f4;
+  --card: #ffffff;
+  --cab: #f5f7f9;
+  --ouro: #f2b600;
+  --raio: 6px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fundo); color: var(--texto);
+  font: 13px/1.45 'Roboto', Arial, sans-serif;
+}
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--verde-escuro); }
+h1, h2, h3 { font-family: 'Roboto Condensed', 'Roboto', sans-serif; margin: 0 0 10px; }
+h1 { font-size: 24px; font-weight: 700; }
+h2 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+h3 { font-size: 14px; font-weight: 700; }
+.muted { color: var(--texto-2); }
+.material-symbols-outlined {
+  font-size: 18px; vertical-align: middle; display: inline-block; width: 1em; overflow: hidden; flex-shrink: 0;
+}
+
+/* ---------- Topo ---------- */
+.topo { background: var(--topo); color: #fff; position: sticky; top: 0; z-index: 20; border-bottom: 3px solid var(--verde); }
+.topo-interno { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 20px; padding: 10px 16px; }
+.logo { display: flex; align-items: center; gap: 8px; font: 700 20px 'Roboto Condensed', sans-serif; letter-spacing: -.3px; white-space: nowrap; color: #fff; }
+.logo:hover { color: #fff; }
+.logo .bola { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e8ff5a, #b8d400); box-shadow: inset -2px -2px 0 rgba(0,0,0,.15); }
+.logo small { font-weight: 400; color: var(--verde); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+.busca { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; background: var(--topo-2); border-radius: 20px; padding: 0 14px; height: 36px; }
+.busca input { flex: 1; background: transparent; border: 0; outline: 0; color: #fff; font: inherit; font-size: 14px; }
+.busca input::placeholder { color: #8fa3ae; }
+.busca .material-symbols-outlined { color: #8fa3ae; }
+.topo nav { display: flex; gap: 2px; margin-left: auto; }
+.topo nav a { color: #c5d1d7; padding: 8px 12px; border-radius: 4px; font: 500 13px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .4px; }
+.topo nav a:hover { color: #fff; background: var(--topo-2); }
+.topo nav a.ativo { color: #fff; box-shadow: inset 0 -3px 0 var(--verde); border-radius: 0; }
+
+/* ---------- Layout ---------- */
+.pagina { max-width: 1240px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 16px; align-items: start; }
+.lateral { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 76px; }
+.bloco { background: var(--card); border-radius: var(--raio); overflow: hidden; }
+.bloco-titulo { padding: 10px 12px; font: 700 12px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .5px; color: var(--texto-2); border-bottom: 1px solid var(--linha); }
+.menu a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--linha); font-size: 13px; }
+.menu a:last-child { border-bottom: 0; }
+.menu a:hover { background: var(--cab); }
+.menu .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ponto { width: 8px; height: 8px; border-radius: 50%; background: #c3cad1; flex-shrink: 0; }
+.ponto.ANDAMENTO { background: var(--vivo); }
+.ponto.INSCRICOES { background: var(--verde); }
+.ponto.FINALIZADO { background: var(--texto-2); }
+.conteudo { min-width: 0; }
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 16px;
+  border-radius: 4px; border: 1px solid transparent; background: var(--verde); color: #fff; cursor: pointer;
+  font: 700 12px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+}
+.btn:hover { background: var(--verde-escuro); color: #fff; }
+.btn.contorno { background: var(--card); color: var(--texto); border-color: var(--borda); }
+.btn.contorno:hover { border-color: var(--texto-2); color: var(--texto); }
+.btn.perigo { background: var(--card); color: #d0021b; border-color: var(--borda); }
+.btn.perigo:hover { background: #fdecef; }
+.btn.fantasma { background: transparent; color: var(--texto-2); padding: 0 8px; }
+.btn.fantasma:hover { color: var(--texto); background: var(--cab); }
+.btn.pequeno { height: 28px; padding: 0 10px; font-size: 11px; }
+.btn.largo { width: 100%; }
+form.inline { display: inline; }
+
+/* ---------- Abas / filtros ---------- */
+.abas { display: flex; background: var(--card); border-radius: var(--raio) var(--raio) 0 0; border-bottom: 1px solid var(--borda); overflow-x: auto; }
+.abas a {
+  padding: 12px 16px; font: 700 12px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--texto-2); border-bottom: 3px solid transparent; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+}
+.abas a:hover { color: var(--texto); }
+.abas a.ativo { color: var(--texto); border-bottom-color: var(--verde); }
+.abas .contador { background: var(--linha); border-radius: 8px; padding: 0 6px; font-size: 11px; }
+.abas .vivo-badge { background: var(--vivo); color: #fff; border-radius: 8px; padding: 0 6px; font-size: 11px; }
+.pilulas { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--linha); }
+.pilulas a { padding: 4px 12px; border-radius: 14px; background: var(--linha); font: 500 12px 'Roboto Condensed', sans-serif; text-transform: uppercase; color: var(--texto-2); }
+.pilulas a:hover { color: var(--texto); }
+.pilulas a.ativo { background: var(--verde); color: #fff; }
+
+/* ---------- Cabeçalho do evento ---------- */
+.evento { background: var(--card); border-radius: var(--raio); padding: 16px; margin-bottom: 12px; display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.evento .sobre { display: flex; gap: 14px; align-items: center; }
+.evento .icone { width: 56px; height: 56px; border-radius: 8px; background: var(--topo); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.evento .meta { color: var(--texto-2); display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.evento .acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.selo { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 3px; font: 700 11px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .4px; background: var(--linha); color: var(--texto-2); white-space: nowrap; }
+.selo.RASCUNHO { background: #eceff2; color: #5a6670; }
+.selo.INSCRICOES { background: var(--verde-claro); color: var(--verde-escuro); }
+.selo.ANDAMENTO { background: #ffe5ec; color: var(--vivo); }
+.selo.FINALIZADO, .selo.FINALIZADA { background: #e9ecef; color: #3c4650; }
+.selo.CANCELADO, .selo.WO, .selo.ABANDONO { background: #fdecef; color: #d0021b; }
+.selo.AGENDADA { background: #fff6dc; color: #9a6b00; }
+
+/* ---------- Painéis ---------- */
+.painel { background: var(--card); border-radius: var(--raio); margin-bottom: 12px; overflow: hidden; }
+.painel.com-abas { border-radius: 0 0 var(--raio) var(--raio); }
+.painel-corpo { padding: 16px; }
+.painel-cab {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--cab); border-bottom: 1px solid var(--linha);
+  font: 700 12px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .4px;
+}
+.painel-cab .local { color: var(--texto-2); font-weight: 400; }
+.painel-cab .direita { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.painel-cab a.mais { color: var(--texto-2); font-weight: 500; }
+.painel-cab a.mais:hover { color: var(--verde-escuro); }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.grade .painel { margin: 0; }
+
+/* ---------- Linha de partida (lista de jogos) ---------- */
+.jogo { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto 28px; align-items: center; border-bottom: 1px solid var(--linha); background: var(--card); color: var(--texto); }
+a.jogo:hover { background: #f7fbf8; color: var(--texto); }
+.jogo:last-child { border-bottom: 0; }
+.jogo .tempo { text-align: center; font-size: 12px; color: var(--texto-2); padding: 8px 4px; line-height: 1.2; }
+.jogo .tempo.vivo { color: var(--vivo); font-weight: 700; }
+.jogo .tempo.vivo::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--vivo); margin: 0 auto 3px; animation: pulsar 1.2s infinite; }
+@keyframes pulsar { 50% { opacity: .2; } }
+.jogo .lados { padding: 6px 0; min-width: 0; }
+.jogo .lado { display: flex; align-items: center; gap: 8px; height: 24px; }
+.jogo .lado .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jogo .lado.vencedor .nome { font-weight: 700; }
+.jogo .lado.perdedor .nome { color: var(--texto-2); }
+.jogo .lado.indefinido .nome { color: #a3acb5; font-style: italic; }
+.jogo .placar { display: flex; gap: 2px; padding: 6px 8px; }
+.jogo .placar .col { display: flex; flex-direction: column; width: 18px; text-align: center; }
+.jogo .placar .col span { height: 24px; line-height: 24px; color: var(--texto-2); font-size: 12px; }
+.jogo .placar .col span.ganhou { color: var(--texto); font-weight: 700; }
+.jogo .placar .col.total { width: 22px; margin-right: 6px; }
+.jogo .placar .col.total span { color: var(--texto); font-weight: 700; font-size: 14px; }
+.jogo .placar .col.total.vivo span { color: var(--vivo); }
+.jogo .placar sup { font-size: 8px; }
+.jogo .seta { color: #b8c0c8; text-align: center; }
+.jogo.bye { opacity: .55; }
+
+.mini { width: 18px; height: 18px; border-radius: 50%; background: var(--topo-2); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; object-fit: cover; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--topo-2); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; object-fit: cover; }
+.avatar.grande { width: 72px; height: 72px; font-size: 26px; }
+.pessoa { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ---------- Tabelas ---------- */
+.tabela-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font: 700 11px 'Roboto Condensed', sans-serif; text-transform: uppercase; color: var(--texto-2); padding: 8px 10px; background: var(--cab); border-bottom: 1px solid var(--linha); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--linha); }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: #f7fbf8; }
+th.num, td.num { text-align: center; width: 44px; }
+.pos { display: inline-flex; width: 22px; height: 22px; border-radius: 4px; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; background: var(--linha); }
+.pos.classifica { background: var(--verde); color: #fff; }
+.legenda { display: flex; align-items: center; gap: 6px; padding: 8px 12px; color: var(--texto-2); font-size: 12px; }
+.legenda .pos { width: 12px; height: 12px; }
+
+/* ---------- Chave (bracket) ---------- */
+.chave-scroll { overflow-x: auto; padding: 12px; }
+.chave { display: flex; gap: 36px; min-width: min-content; }
+.chave-rodada { display: flex; flex-direction: column; min-width: 190px; }
+.chave-rodada h3 { text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--texto-2); }
+.chave-corpo { display: flex; flex-direction: column; flex: 1; }
+.par { flex: 1; display: flex; flex-direction: column; position: relative; }
+.vaga { flex: 1; display: flex; align-items: center; padding: 6px 0; }
+.chave-rodada:not(:last-child) .par::after {
+  content: ''; position: absolute; right: -18px; top: 25%; height: 50%; width: 18px;
+  border: 2px solid var(--borda); border-left: 0;
+}
+.chave-rodada:not(:last-child) .par.unica::after { top: 50%; height: 0; border-bottom: 0; }
+.chave-rodada:not(:first-child) .caixa::before { content: ''; position: absolute; left: -20px; top: 50%; width: 18px; border-top: 2px solid var(--borda); }
+.caixa { position: relative; width: 100%; border: 1px solid var(--borda); border-radius: 4px; background: var(--card); color: var(--texto); display: block; }
+a.caixa:hover { border-color: var(--verde); color: var(--texto); }
+.caixa .lado { display: flex; align-items: center; gap: 6px; padding: 0 8px; height: 28px; }
+.caixa .lado + .lado { border-top: 1px solid var(--linha); }
+.caixa .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.caixa .lado.vencedor .nome { font-weight: 700; }
+.caixa .lado.perdedor .nome { color: var(--texto-2); }
+.caixa .lado.indefinido .nome { color: #a3acb5; font-style: italic; }
+.caixa .games { display: flex; gap: 4px; font-size: 12px; }
+.caixa .games span { width: 14px; text-align: center; color: var(--texto-2); }
+.caixa .games span.ganhou { color: var(--texto); font-weight: 700; }
+.caixa .games sup { font-size: 8px; }
+.caixa .rodape { display: flex; justify-content: space-between; padding: 2px 8px; background: var(--cab); font-size: 10px; color: var(--texto-2); text-transform: uppercase; border-radius: 0 0 4px 4px; }
+.caixa .rodape .vivo { color: var(--vivo); font-weight: 700; }
+.caixa.final { border: 2px solid var(--ouro); }
+.caixa.bye { opacity: .55; }
+.caixa.campeao-caixa .lado { height: 40px; }
+
+/* ---------- Campeão / progresso ---------- */
+.campeao { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: linear-gradient(90deg, var(--topo), var(--topo-2)); color: #fff; border-radius: var(--raio); margin-bottom: 12px; border-left: 4px solid var(--ouro); }
+.campeao .trofeu { font-size: 34px; color: var(--ouro); width: auto; }
+.campeao .rotulo { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--ouro); }
+.campeao .nome { font: 700 20px 'Roboto Condensed', sans-serif; }
+.progresso { height: 6px; background: var(--linha); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progresso div { height: 100%; background: var(--verde); }
+
+/* ---------- Formulários ---------- */
+.form-painel { max-width: 640px; }
+.campo { margin-bottom: 14px; }
+.campo > label { display: block; font: 700 11px 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: .4px; color: var(--texto-2); margin-bottom: 4px; }
+.campo input[type=text], .campo input[type=date], .campo input[type=datetime-local], .campo input[type=number],
+.campo select, .campo textarea {
+  width: 100%; padding: 9px 10px; border: 1px solid var(--borda); border-radius: 4px; font: inherit; font-size: 14px; background: #fff; color: var(--texto);
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus { outline: 0; border-color: var(--verde); box-shadow: 0 0 0 2px var(--verde-claro); }
+.campo select:disabled { background: var(--cab); color: var(--texto-2); }
+.campo .ajuda { font-size: 12px; color: var(--texto-2); margin-top: 3px; }
+.campo .erro, .erro-geral { font-size: 12px; color: #d0021b; margin-top: 3px; }
+.campo.com-erro input, .campo.com-erro select { border-color: #d0021b; }
+.campo ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.campo ul li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.campo input[type=radio] { accent-color: var(--verde); width: 16px; height: 16px; margin: 0; }
+.form-acoes { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.form-linha { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.form-linha .campo { flex: 1; min-width: 170px; margin: 0; }
+
+/* ---------- Busca ---------- */
+.resultado { padding: 12px 16px; border-bottom: 1px solid var(--linha); display: flex; gap: 12px; align-items: center; }
+.resultado:last-child { border-bottom: 0; }
+.resultado .icone-res { width: 36px; height: 36px; border-radius: 6px; background: var(--topo); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.resultado .titulo { font-weight: 700; font-size: 14px; }
+
+/* ---------- Avisos ---------- */
+.avisos { position: fixed; right: 16px; top: 72px; display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+.aviso { background: var(--topo); color: #fff; padding: 12px 16px; border-radius: 4px; border-left: 4px solid var(--verde); box-shadow: 0 4px 16px rgba(0,0,0,.2); max-width: 380px; animation: entrar .25s ease-out, sair .4s ease-in 5s forwards; }
+.aviso.error { border-left-color: var(--vivo); }
+@keyframes entrar { from { transform: translateX(20px); opacity: 0; } }
+@keyframes sair { to { opacity: 0; visibility: hidden; } }
+
+.vazio { text-align: center; padding: 40px 16px; color: var(--texto-2); }
+.vazio .material-symbols-outlined { font-size: 48px; display: block; margin: 0 auto 8px; color: #c3cad1; }
+
+@media (max-width: 860px) {
+  .pagina { grid-template-columns: 1fr; padding: 10px; }
+  .lateral { position: static; order: 2; }
+  .topo-interno { flex-wrap: wrap; gap: 10px; }
+  .busca { order: 3; max-width: none; flex-basis: 100%; }
+  .topo nav { margin-left: auto; }
+  .jogo { grid-template-columns: 52px minmax(0, 1fr) auto 20px; }
+}

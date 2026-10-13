@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}Placar{% endblock %}
+
+{% block conteudo %}
+<nav class="abas">
+  {% for chave, (rotulo, _) in filtros.items() %}
+  <a href="{{ url_for('main.home', filtro=chave) }}" class="{{ 'ativo' if filtro == chave }}">
+    {{ rotulo }}{% if chave == 'ao-vivo' and ao_vivo %} <span class="vivo-badge">{{ ao_vivo }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</nav>
+
+{% for torneio, jogos in blocos %}
+<section class="painel{{ ' com-abas' if loop.first }}">
+  <div class="painel-cab">
+    <span class="material-symbols-outlined">sports_tennis</span>
+    <span class="local">{{ torneio.local }}:</span>
+    <a href="{{ torneio.url }}">{{ torneio.nome }}</a>
+    <div class="direita">
+      <span class="selo {{ torneio.status }}">{{ torneio.status_label }}</span>
+      <a class="mais" href="{{ url_for('torneios.detalhe', torneio_id=torneio.id, aba='chave') }}">Chave ›</a>
+    </div>
+  </div>
+  {% set rodada_atual = namespace(v='') %}
+  {% for p in jogos %}
+    {% set rotulo = p.rodada_label ~ (' · Grupo ' ~ p.grupo if p.grupo else '') ~ (' · Rodada ' ~ p.jornada if p.jornada else '') %}
+    {% if rotulo != rodada_atual.v %}
+      {% set rodada_atual.v = rotulo %}
+      <div class="painel-cab" style="background:#fff;color:var(--texto-2);font-weight:500">{{ rotulo }}</div>
+    {% endif %}
+    {{ m.linha_jogo(p, 'partidas') }}
+  {% endfor %}
+</section>
+{% else %}
+<div class="painel com-abas">
+  <div class="vazio">
+    <span class="material-symbols-outlined">scoreboard</span>
+    {% if filtro == 'ao-vivo' %}Nenhuma partida ao vivo no momento.
+    {% elif filtro == 'todos' %}Nenhuma partida ainda. Crie um torneio, inscreva jogadores e gere a chave.<br><br>
+      <a class="btn" href="{{ url_for('torneios.formulario') }}">Criar torneio</a>
+    {% else %}Nenhuma partida neste filtro.{% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

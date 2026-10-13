@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+<form method="post" enctype="multipart/form-data" class="painel form-painel">
+  <div class="painel-corpo">
+    {{ m.campos(form) }}
+    <div class="form-acoes">
+      <a class="btn contorno" href="{{ voltar }}">Cancelar</a>
+      <button class="btn" type="submit">Salvar</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

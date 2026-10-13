@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}{{ q }} · Busca{% endblock %}
+
+{% block conteudo %}
+<h1>Busca: "{{ q }}"</h1>
+<p class="muted">{{ total }} resultado(s)</p>
+
+{% if torneios %}
+<section class="painel">
+  <div class="painel-cab">Torneios</div>
+  {% for t in torneios %}
+  <a class="resultado" href="{{ t.url }}">
+    <span class="icone-res"><span class="material-symbols-outlined">emoji_events</span></span>
+    <div>
+      <div class="titulo">{{ t.nome }}</div>
+      <div class="muted">{{ t.local }} · {{ t.data_torneio|data }} · {{ t.formato_label }} · {{ t.inscricoes|length }} inscrito(s)</div>
+    </div>
+    <span class="selo {{ t.status }}" style="margin-left:auto">{{ t.status_label }}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if jogadores %}
+<section class="painel">
+  <div class="painel-cab">Jogadores</div>
+  {% for j in jogadores %}
+  <a class="resultado" href="{{ j.url }}">{{ m.avatar(j) }}<div class="titulo">{{ j.nome }}</div></a>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if not torneios and not jogadores %}
+<div class="painel"><div class="vazio">
+  <span class="material-symbols-outlined">search_off</span>
+  Nenhum torneio ou jogador encontrado para "{{ q }}".<br><br>
+  <a class="btn" href="{{ url_for('torneios.formulario') }}">Criar torneio</a>
+</div></div>
+{% endif %}
+{% endblock %}

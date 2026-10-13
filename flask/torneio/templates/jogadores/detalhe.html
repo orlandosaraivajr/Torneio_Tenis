@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}{{ jogador.nome }}{% endblock %}
+
+{% block conteudo %}
+<div class="evento">
+  <div class="sobre">
+    {{ m.avatar(jogador, 'avatar grande') }}
+    <div>
+      <h1 style="margin:0">{{ jogador.nome }}</h1>
+      <div class="meta">
+        <span>{{ inscricoes|length }} torneio(s)</span>
+        <span><b style="color:var(--verde)">{{ vitorias }}</b> vitória(s)</span>
+        <span><b style="color:#d0021b">{{ derrotas }}</b> derrota(s)</span>
+      </div>
+    </div>
+  </div>
+  <div class="acoes">
+    <a class="btn contorno pequeno" href="{{ url_for('jogadores.formulario', jogador_id=jogador.id) }}">Editar</a>
+    <form class="inline" method="post" action="{{ url_for('jogadores.excluir', jogador_id=jogador.id) }}" onsubmit="return confirm('Excluir este jogador?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn perigo pequeno" type="submit">Excluir</button>
+    </form>
+  </div>
+</div>
+
+<section class="painel">
+  <div class="painel-cab">Torneios</div>
+  {% for i in inscricoes %}
+  <a class="resultado" href="{{ i.torneio.url }}">
+    <span class="icone-res"><span class="material-symbols-outlined">emoji_events</span></span>
+    <div>
+      <div class="titulo">{{ i.torneio.nome }}</div>
+      <div class="muted">{{ i.torneio.data_torneio|data }}{% if i.cabeca_de_chave %} · Cabeça de chave {{ i.cabeca_de_chave }}{% endif %}</div>
+    </div>
+    <span class="selo {{ i.torneio.status }}" style="margin-left:auto">{{ i.torneio.status_label }}</span>
+  </a>
+  {% else %}
+  <div class="painel-corpo muted">Ainda não se inscreveu em nenhum torneio.</div>
+  {% endfor %}
+</section>
+
+<section class="painel">
+  <div class="painel-cab">Partidas</div>
+  {% for torneio, jogos in blocos %}
+    <div class="painel-cab" style="background:#fff;color:var(--texto-2);font-weight:500">{{ torneio.nome }}</div>
+    {% for p in jogos %}{{ m.linha_jogo(p, 'partidas') }}{% endfor %}
+  {% else %}
+  <div class="painel-corpo muted">Nenhuma partida disputada.</div>
+  {% endfor %}
+</section>
+{% endblock %}

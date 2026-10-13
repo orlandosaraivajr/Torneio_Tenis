@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}{{ torneio.nome }}{% endblock %}
+
+{% block conteudo %}
+<div class="evento">
+  <div class="sobre">
+    <div class="icone"><span class="material-symbols-outlined" style="font-size:30px">emoji_events</span></div>
+    <div>
+      <h1 style="margin:0">{{ torneio.nome }}</h1>
+      <div class="meta">
+        <span class="selo {{ torneio.status }}">{{ torneio.status_label }}</span>
+        <span>{{ torneio.formato_label }}</span>
+        <span>{{ torneio.data_torneio|data }}</span>
+        <span>{{ torneio.local }}</span>
+        {% if torneio.organizador %}<span>Org.: {{ torneio.organizador.nome }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="acoes">
+    <a class="btn contorno pequeno" href="{{ url_for('torneios.formulario', torneio_id=torneio.id) }}">Editar</a>
+    <form class="inline" method="post" action="{{ url_for('torneios.excluir', torneio_id=torneio.id) }}" onsubmit="return confirm('Excluir este torneio e todas as suas partidas?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn perigo pequeno" type="submit">Excluir</button>
+    </form>
+  </div>
+</div>
+
+{% if campeao %}
+<div class="campeao">
+  <span class="material-symbols-outlined trofeu">emoji_events</span>
+  <div><div class="rotulo">Campeão</div><div class="nome">{{ campeao.jogador.nome }}</div></div>
+</div>
+{% endif %}
+
+{% macro aba_link(codigo, rotulo, extra='') %}
+<a href="{{ url_for('torneios.detalhe', torneio_id=torneio.id, aba=codigo) }}" class="{{ 'ativo' if aba == codigo }}">{{ rotulo }}{{ extra|safe }}</a>
+{% endmacro %}
+<nav class="abas">
+  {{ aba_link('resumo', 'Resumo') }}
+  {{ aba_link('inscritos', 'Inscritos', ' <span class="contador">' ~ inscricoes|length ~ '</span>') }}
+  {{ aba_link('chave', 'Rodadas' if torneio.formato == 'RR' else ('Grupos e chave' if torneio.formato == 'GRUPOS' else 'Chave')) }}
+  {{ aba_link('partidas', 'Partidas') }}
+  {% if torneio.formato != 'ELIM' %}{{ aba_link('classificacao', 'Classificação') }}{% endif %}
+</nav>
+
+{# ===================== RESUMO ===================== #}
+{% if aba == 'resumo' %}
+<div class="painel com-abas">
+  <div class="painel-cab">Próximo passo</div>
+  <div class="painel-corpo">
+    {% if torneio.status == 'CANCELADO' %}
+      <p class="muted">Torneio cancelado.</p>
+    {% elif not tem_chave %}
+      {% if inscricoes|length < 2 %}
+        <p>Inscreva pelo menos 2 jogadores ({{ '3 para fase de grupos' if torneio.formato == 'GRUPOS' else 'até 32 na chave' }}).</p>
+        <a class="btn" href="{{ url_for('torneios.detalhe', torneio_id=torneio.id, aba='inscritos') }}">Inscrever jogadores</a>
+      {% else %}
+        <p>{{ inscricoes|length }} jogadores inscritos. Ao gerar a chave, as inscrições são encerradas.</p>
+        <form method="post" action="{{ url_for('torneios.gerar_chave', torneio_id=torneio.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn">Gerar chave</button>
+        </form>
+      {% endif %}
+    {% elif grupos_concluidos %}
+      <p>A fase de grupos terminou. Os 2 primeiros de cada grupo avançam.</p>
+      <form method="post" action="{{ url_for('torneios.gerar_mata_mata', torneio_id=torneio.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn">Gerar mata-mata</button>
+      </form>
+    {% elif torneio.status == 'FINALIZADO' %}
+      <p>Torneio encerrado{% if campeao %} — parabéns, <b>{{ campeao.jogador.nome }}</b>!{% endif %}</p>
+    {% else %}
+      <p>Clique nas partidas da aba <a href="{{ url_for('torneios.detalhe', torneio_id=torneio.id, aba='chave') }}"><b>Chave</b></a> para lançar resultados. Os vencedores avançam automaticamente.</p>
+    {% endif %}
+    {% if tem_chave %}
+      <div class="muted" style="margin-top:12px">{{ encerradas }} de {{ partidas|length }} partidas encerradas</div>
+      <div class="progresso"><div style="width:{{ (encerradas * 100 / partidas|length)|round|int }}%"></div></div>
+    {% endif %}
+  </div>
+</div>
+<div class="grade">
+  <div class="painel"><div class="painel-cab">Descrição</div><div class="painel-corpo muted">{{ torneio.descricao or 'Sem descrição.' }}</div></div>
+  <div class="painel"><div class="painel-cab">Premiação</div><div class="painel-corpo muted">{{ torneio.premiacao or 'Não informada.' }}</div></div>
+</div>
+<div class="painel" style="margin-top:12px">
+  <div class="painel-cab">Regulamento</div>
+  <div class="painel-corpo">
+    <p class="muted" style="white-space:pre-line;margin-top:0">{{ torneio.regulamento or 'Não informado.' }}</p>
+    {% if torneio.regulamento_arquivo %}
+    <a class="btn contorno pequeno" href="{{ url_for('main.upload', caminho=torneio.regulamento_arquivo) }}" target="_blank">Baixar regulamento</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ===================== INSCRITOS ===================== #}
+{% if aba == 'inscritos' %}
+<div class="painel com-abas">
+  {% if inscricao_form %}
+  <form method="post" action="{{ url_for('torneios.inscrever', torneio_id=torneio.id) }}" class="painel-corpo" style="border-bottom:1px solid var(--linha)">
+    {{ inscricao_form.hidden_tag() }}
+    <div class="form-linha">
+      {% for campo in [inscricao_form.jogador, inscricao_form.novo_jogador, inscricao_form.cabeca_de_chave] %}
+      <div class="campo">{{ campo.label }}{{ campo() }}</div>
+      {% endfor %}
+      <button class="btn" type="submit"><span class="material-symbols-outlined">person_add</span>Inscrever</button>
+    </div>
+  </form>
+  {% elif tem_chave %}
+  <div class="painel-corpo muted">A chave já foi gerada: as inscrições estão encerradas.</div>
+  {% endif %}
+
+  {% if inscricoes %}
+  <div class="tabela-wrap">
+    <table>
+      <thead><tr><th>Jogador</th><th class="num">Cabeça</th>{% if torneio.formato == 'GRUPOS' %}<th class="num">Grupo</th>{% endif %}<th>Inscrito em</th><th></th></tr></thead>
+      <tbody>
+      {% for i in inscricoes %}
+        <tr>
+          <td><a class="pessoa" href="{{ i.jogador.url }}">{{ m.avatar(i.jogador) }}{{ i.jogador.nome }}</a></td>
+          <td class="num">{{ i.cabeca_de_chave or '—' }}</td>
+          {% if torneio.formato == 'GRUPOS' %}<td class="num">{{ i.grupo or '—' }}</td>{% endif %}
+          <td class="muted">{{ i.data_inscricao|datahora }}</td>
+          <td style="text-align:right">
+            {% if torneio.aceita_inscricoes %}
+            <form class="inline" method="post" action="{{ url_for('torneios.remover_inscricao', inscricao_id=i.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn fantasma pequeno" type="submit" title="Remover inscrição"><span class="material-symbols-outlined">close</span></button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="material-symbols-outlined">group_add</span>Nenhum jogador inscrito ainda.</div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ===================== CHAVE ===================== #}
+{% if aba == 'chave' %}
+{% if not tem_chave %}
+<div class="painel com-abas"><div class="vazio">
+  <span class="material-symbols-outlined">account_tree</span>A chave ainda não foi gerada.<br><br>
+  {% if inscricoes|length >= 2 %}
+  <form method="post" action="{{ url_for('torneios.gerar_chave', torneio_id=torneio.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn">Gerar chave com {{ inscricoes|length }} jogadores</button>
+  </form>
+  {% else %}
+  <a class="btn" href="{{ url_for('torneios.detalhe', torneio_id=torneio.id, aba='inscritos') }}">Inscrever jogadores</a>
+  {% endif %}
+</div></div>
+{% else %}
+
+  {% if tem_mata_mata %}
+  <div class="painel com-abas">
+    <div class="painel-cab">Mata-mata</div>
+    <div class="chave-scroll">
+      <div class="chave">
+        {% for rodada in chave %}
+        <div class="chave-rodada">
+          <h3>{{ rodada.nome }}</h3>
+          <div class="chave-corpo">
+            {% for par in rodada.pares %}
+            <div class="par{{ ' unica' if par|length == 1 }}">
+              {% for p in par %}<div class="vaga">{{ m.caixa_chave(p) }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <div class="chave-rodada">
+          <h3>Campeão</h3>
+          <div class="chave-corpo"><div class="par unica"><div class="vaga">
+            <div class="caixa final campeao-caixa"><div class="lado {{ 'vencedor' if campeao else 'indefinido' }}">
+              <span class="material-symbols-outlined" style="color:var(--ouro)">emoji_events</span>
+              <span class="nome">{{ campeao.jogador.nome if campeao else 'A definir' }}</span>
+            </div></div>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if grupos_concluidos %}
+  <div class="painel{{ ' com-abas' if not tem_mata_mata }}"><div class="painel-corpo" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <span>Fase de grupos concluída! Os 2 primeiros de cada grupo avançam.</span>
+    <form method="post" action="{{ url_for('torneios.gerar_mata_mata', torneio_id=torneio.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn">Gerar mata-mata</button>
+    </form>
+  </div></div>
+  {% endif %}
+
+  {% if grupos %}
+  <div class="grade" style="grid-template-columns:repeat(auto-fill,minmax(420px,1fr)){{ ';margin-top:0' if tem_mata_mata }}">
+    {% for g in grupos %}
+    <section class="painel">
+      <div class="painel-cab">Grupo {{ g.letra }}</div>
+      {{ m.tabela(g.tabela, 2) }}
+      <div style="border-top:1px solid var(--linha)">{% for p in g.jogos %}{{ m.linha_jogo(p, 'chave') }}{% endfor %}</div>
+    </section>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if torneio.formato == 'RR' %}
+  {% for jornada, jogos in partidas|groupby('jornada') %}
+  <section class="painel{{ ' com-abas' if loop.first }}">
+    <div class="painel-cab">Rodada {{ jornada }}</div>
+    {% for p in jogos %}{{ m.linha_jogo(p, 'chave') }}{% endfor %}
+  </section>
+  {% endfor %}
+  {% endif %}
+
+  {% if torneio.status != 'FINALIZADO' %}
+  <form method="post" action="{{ url_for('torneios.refazer_chave', torneio_id=torneio.id) }}" style="margin-top:12px"
+        onsubmit="return confirm('Apagar todas as partidas e resultados e reabrir as inscrições?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn perigo pequeno"><span class="material-symbols-outlined">restart_alt</span>Refazer chave</button>
+  </form>
+  {% endif %}
+{% endif %}
+{% endif %}
+
+{# ===================== PARTIDAS ===================== #}
+{% if aba == 'partidas' %}
+<div class="painel com-abas">
+  {% set jogos = partidas|rejectattr('is_bye')|list %}
+  {% for p in jogos %}{{ m.linha_jogo(p, 'partidas') }}{% else %}
+  <div class="vazio"><span class="material-symbols-outlined">sports_tennis</span>Nenhuma partida ainda. Gere a chave para criar os jogos.</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ===================== CLASSIFICAÇÃO ===================== #}
+{% if aba == 'classificacao' %}
+{% if tabela_geral %}
+  <div class="painel com-abas">{{ m.tabela(tabela_geral, 1) }}</div>
+{% elif grupos %}
+  <div class="grade" style="grid-template-columns:repeat(auto-fill,minmax(420px,1fr))">
+  {% for g in grupos %}<section class="painel"><div class="painel-cab">Grupo {{ g.letra }}</div>{{ m.tabela(g.tabela, 2) }}</section>{% endfor %}
+  </div>
+{% else %}
+  <div class="painel com-abas"><div class="vazio"><span class="material-symbols-outlined">leaderboard</span>A classificação aparece depois que a chave for gerada.</div></div>
+{% endif %}
+<p class="muted">Critérios: vitórias, saldo de sets, saldo de games.</p>
+{% endif %}
+{% endblock %}

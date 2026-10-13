@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block titulo %}Resultado{% endblock %}
+
+{% block conteudo %}
+<p class="muted"><a href="{{ destino }}">‹ {{ partida.torneio.nome }}</a></p>
+<div class="painel form-painel">
+  <div class="painel-cab">
+    {{ partida.rodada_label }}{% if partida.grupo %} · Grupo {{ partida.grupo }}{% endif %}{% if partida.jornada %} · Rodada {{ partida.jornada }}{% endif %}
+    <div class="direita"><span class="selo {{ partida.status }}">{{ partida.status_label }}</span></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-around;padding:20px 16px;gap:12px;text-align:center">
+    <div>{% if partida.inscricao_1 %}{{ m.avatar(partida.inscricao_1.jogador, 'avatar grande') }}{% endif %}<h3 style="margin-top:8px">{{ partida.nome_1 }}</h3></div>
+    <div style="font:700 28px 'Roboto Condensed';color:var(--texto-2)">
+      {% if partida.sets %}{{ partida.sets_vencidos[0] }} - {{ partida.sets_vencidos[1] }}{% else %}vs{% endif %}
+    </div>
+    <div>{% if partida.inscricao_2 %}{{ m.avatar(partida.inscricao_2.jogador, 'avatar grande') }}{% endif %}<h3 style="margin-top:8px">{{ partida.nome_2 }}</h3></div>
+  </div>
+  <form method="post" class="painel-corpo" style="border-top:1px solid var(--linha)">
+    <input type="hidden" name="voltar" value="{{ voltar }}">
+    {{ m.campos(form) }}
+    <div class="form-acoes">
+      <a class="btn contorno" href="{{ destino }}">Cancelar</a>
+      <button class="btn" type="submit">Salvar resultado</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

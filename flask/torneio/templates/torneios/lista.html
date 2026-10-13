@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block titulo %}Torneios{% endblock %}
+
+{% block conteudo %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+  <h1>Torneios</h1>
+  <a class="btn" href="{{ url_for('torneios.formulario') }}"><span class="material-symbols-outlined">add</span>Novo torneio</a>
+</div>
+
+<div class="painel">
+  <div class="pilulas">
+    <a href="{{ url_for('torneios.lista') }}" class="{{ 'ativo' if not status_atual }}">Todos</a>
+    {% for valor, rotulo in status_choices %}
+    <a href="{{ url_for('torneios.lista', status=valor) }}" class="{{ 'ativo' if status_atual == valor }}">{{ rotulo }}</a>
+    {% endfor %}
+  </div>
+  {% if torneios %}
+  <div class="tabela-wrap">
+    <table>
+      <thead><tr><th>Torneio</th><th>Data</th><th>Local</th><th>Formato</th><th class="num">Inscritos</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for t in torneios %}
+        <tr>
+          <td><a href="{{ t.url }}"><b>{{ t.nome }}</b></a></td>
+          <td>{{ t.data_torneio|data }}</td>
+          <td class="muted">{{ t.local }}</td>
+          <td class="muted">{{ t.formato_label }}</td>
+          <td class="num">{{ t.inscricoes|length }}</td>
+          <td><span class="selo {{ t.status }}">{{ t.status_label }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="material-symbols-outlined">emoji_events</span>Nenhum torneio encontrado.</div>
+  {% endif %}
+</div>
+{% endblock %}
