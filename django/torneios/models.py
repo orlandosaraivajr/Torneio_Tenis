@@ -95,7 +95,7 @@ class Inscricao(models.Model):
     data_inscricao = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['cabeca_de_chave', 'jogador__nome']
+        ordering = [models.F('cabeca_de_chave').asc(nulls_last=True), 'jogador__nome']
         verbose_name = 'inscrição'
         verbose_name_plural = 'inscrições'
         constraints = [
