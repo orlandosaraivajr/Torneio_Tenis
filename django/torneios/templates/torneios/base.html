@@ -1,0 +1,32 @@
+{% load static %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Torneios de Tênis{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'torneios/style.css' %}">
+</head>
+<body>
+  {% block topo %}
+  <header class="topbar">
+    {% include 'torneios/_logo.html' %}
+    <form class="busca" action="{% url 'home' %}" method="get">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Buscar torneios, clubes ou jogadores" aria-label="Buscar">
+    </form>
+    {% include 'torneios/_nav.html' %}
+  </header>
+  {% endblock %}
+
+  {% block corpo %}{% endblock %}
+
+  {% if messages %}
+  <div class="snackbars">
+    {% for message in messages %}<div class="snackbar {{ message.tags }}">{{ message }}</div>{% endfor %}
+  </div>
+  {% endif %}
+</body>
+</html>

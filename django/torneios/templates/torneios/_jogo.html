@@ -1,0 +1,22 @@
+{# Card de uma partida. Parâmetros: partida, voltar (aba de retorno) #}
+{% with p=partida editavel=partida.editavel %}
+{% if editavel %}<a class="jogo{% if p.rodada == 'F' %} final{% endif %}" href="{% url 'partida_resultado' p.pk %}?voltar={{ voltar }}" title="Registrar resultado">
+{% else %}<div class="jogo{% if p.is_bye %} bye{% endif %}{% if p.rodada == 'F' %} final{% endif %}">{% endif %}
+
+  <div class="linha {% if not p.inscricao_1 %}indefinido{% elif p.vencedor_id == p.inscricao_1_id %}vencedor{% elif p.vencedor_id %}perdedor{% endif %}">
+    <span class="nome">{{ p.nome_1 }}</span>
+    <span class="games">{% for s in p.sets %}<span class="{% if s.0 > s.1 %}ganhou{% endif %}">{{ s.0 }}{% if s.2 is not None and s.0 < s.1 %}<sup>{{ s.2 }}</sup>{% endif %}</span>{% endfor %}</span>
+    {% if p.vencedor_id and p.vencedor_id == p.inscricao_1_id %}<span class="material-symbols-outlined check">check_circle</span>{% endif %}
+  </div>
+  <div class="linha {% if not p.inscricao_2 %}indefinido{% elif p.vencedor_id == p.inscricao_2_id %}vencedor{% elif p.vencedor_id %}perdedor{% endif %}">
+    <span class="nome">{{ p.nome_2 }}</span>
+    <span class="games">{% for s in p.sets %}<span class="{% if s.1 > s.0 %}ganhou{% endif %}">{{ s.1 }}{% if s.2 is not None and s.1 < s.0 %}<sup>{{ s.2 }}</sup>{% endif %}</span>{% endfor %}</span>
+    {% if p.vencedor_id and p.vencedor_id == p.inscricao_2_id %}<span class="material-symbols-outlined check">check_circle</span>{% endif %}
+  </div>
+  <div class="rodape">
+    <span>{% if p.is_bye %}Avanço direto{% else %}{{ p.get_status_display }}{% endif %}</span>
+    <span>{% if p.data_hora %}{{ p.data_hora|date:"d/m H:i" }}{% elif editavel and not p.encerrada %}+ agendar{% endif %}</span>
+  </div>
+
+{% if editavel %}</a>{% else %}</div>{% endif %}
+{% endwith %}

@@ -1,0 +1,31 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}{{ q }} - Busca{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <p class="muted">Aproximadamente {{ total }} resultado(s) para "{{ q }}"</p>
+
+  {% for t in torneios %}
+  <div class="resultado">
+    <div class="url"><span class="favicon">🎾</span><span>Torneio · {{ t.local }}</span></div>
+    <a class="titulo" href="{{ t.get_absolute_url }}">{{ t.nome }}</a>
+    <p>{{ t.data_torneio|date:"d M Y" }} — {{ t.get_formato_display }} · {{ t.num_inscritos }} inscrito(s) · {{ t.get_status_display }}.
+      {{ t.descricao|truncatewords:25 }}</p>
+  </div>
+  {% endfor %}
+
+  {% for j in jogadores %}
+  <div class="resultado">
+    <div class="url"><span class="favicon">👤</span><span>Jogador</span></div>
+    <a class="titulo" href="{{ j.get_absolute_url }}">{{ j.nome }}</a>
+  </div>
+  {% endfor %}
+
+  {% if not torneios and not jogadores %}
+  <div class="resultado">
+    <p>Sua pesquisa - <b>{{ q }}</b> - não encontrou nenhum torneio ou jogador.</p>
+    <p class="muted" style="margin-top:12px">Sugestões: verifique a ortografia ou <a href="{% url 'torneio_novo' %}">crie um novo torneio</a>.</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

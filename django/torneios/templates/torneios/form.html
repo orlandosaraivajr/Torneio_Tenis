@@ -1,0 +1,16 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <h1>{{ titulo }}</h1>
+  <form method="post" enctype="multipart/form-data" class="card form-card">
+    {% csrf_token %}
+    {% include 'torneios/_campos.html' %}
+    <div class="form-acoes">
+      <a class="btn texto" href="{% if voltar %}{{ voltar.get_absolute_url }}{% else %}javascript:history.back(){% endif %}">Cancelar</a>
+      <button class="btn" type="submit">Salvar</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

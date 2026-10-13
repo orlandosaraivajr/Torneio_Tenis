@@ -1,0 +1,37 @@
+{% extends 'torneios/base.html' %}
+
+{% block topo %}
+<header class="topbar sem-borda">{% include 'torneios/_nav.html' %}</header>
+{% endblock %}
+
+{% block corpo %}
+<main class="home">
+  {% include 'torneios/_logo.html' with grande=True %}
+  <form class="busca" action="{% url 'home' %}" method="get">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" name="q" placeholder="Buscar torneios, clubes ou jogadores" aria-label="Buscar" autofocus>
+  </form>
+  <div class="botoes">
+    <a class="btn cinza" href="{% url 'torneio_novo' %}">Criar torneio</a>
+    <a class="btn cinza" href="{% url 'jogador_novo' %}">Cadastrar jogador</a>
+  </div>
+
+  {% if recentes %}
+  <section class="recentes">
+    <h3>Torneios recentes</h3>
+    <div class="atalhos">
+      {% for t in recentes %}
+      <a class="atalho" href="{{ t.get_absolute_url }}" title="{{ t.nome }}">
+        <span class="icone">🎾</span>
+        <span class="nome">{{ t.nome }}</span>
+      </a>
+      {% endfor %}
+      <a class="atalho" href="{% url 'torneio_novo' %}">
+        <span class="icone"><span class="material-symbols-outlined">add</span></span>
+        <span class="nome">Novo</span>
+      </a>
+    </div>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

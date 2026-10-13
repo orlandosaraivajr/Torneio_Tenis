@@ -1,0 +1,41 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}Jogadores{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <div class="cabecalho">
+    <h1>Jogadores</h1>
+    <div class="acoes">
+      <form class="busca" method="get" style="height:40px;width:280px">
+        <span class="material-symbols-outlined">filter_list</span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Filtrar por nome">
+      </form>
+      <a class="btn" href="{% url 'jogador_novo' %}"><span class="material-symbols-outlined">person_add</span>Novo jogador</a>
+    </div>
+  </div>
+
+  {% if jogadores %}
+  <div class="card tabela-wrap">
+    <table>
+      <thead><tr><th>Jogador</th><th class="num">Torneios</th><th class="num">Vitórias</th><th></th></tr></thead>
+      <tbody>
+      {% for j in jogadores %}
+        <tr>
+          <td><a class="pessoa" href="{{ j.get_absolute_url }}">{% include 'torneios/_avatar.html' with jogador=j %}{{ j.nome }}</a></td>
+          <td class="num">{{ j.num_torneios }}</td>
+          <td class="num">{{ j.num_vitorias }}</td>
+          <td style="text-align:right"><a class="btn texto pequeno" href="{% url 'jogador_editar' j.pk %}"><span class="material-symbols-outlined">edit</span></a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio card">
+    <span class="material-symbols-outlined">person_search</span>
+    Nenhum jogador encontrado.<br><br>
+    <a class="btn" href="{% url 'jogador_novo' %}">Cadastrar jogador</a>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

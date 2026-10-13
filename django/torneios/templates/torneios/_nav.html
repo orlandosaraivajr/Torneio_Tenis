@@ -1,0 +1,6 @@
+{% with nome=request.resolver_match.url_name %}
+<nav>
+  <a href="{% url 'torneio_lista' %}" class="{% if 'torneio' in nome %}ativo{% endif %}">Torneios</a>
+  <a href="{% url 'jogador_lista' %}" class="{% if 'jogador' in nome %}ativo{% endif %}">Jogadores</a>
+</nav>
+{% endwith %}

@@ -1,0 +1,1 @@
+{% if jogador.foto %}<img class="avatar{% if grande %} grande{% endif %}" src="{{ jogador.foto.url }}" alt="">{% else %}<span class="avatar{% if grande %} grande{% endif %}">{{ jogador.iniciais }}</span>{% endif %}

@@ -1,0 +1,64 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}{{ jogador.nome }}{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <div class="cabecalho">
+    <div style="display:flex;align-items:center;gap:20px">
+      {% include 'torneios/_avatar.html' with jogador=jogador grande=True %}
+      <div>
+        <h1 style="margin-bottom:4px">{{ jogador.nome }}</h1>
+        <div class="muted">{{ inscricoes|length }} torneio(s) · {{ vitorias }} vitória(s) · {{ derrotas }} derrota(s)</div>
+      </div>
+    </div>
+    <div class="acoes">
+      <a class="btn secundario" href="{% url 'jogador_editar' jogador.pk %}"><span class="material-symbols-outlined">edit</span>Editar</a>
+      <form class="inline" method="post" action="{% url 'jogador_excluir' jogador.pk %}" onsubmit="return confirm('Excluir este jogador?')">
+        {% csrf_token %}<button class="btn perigo" type="submit"><span class="material-symbols-outlined">delete</span>Excluir</button>
+      </form>
+    </div>
+  </div>
+
+  <h2>Torneios</h2>
+  {% if inscricoes %}
+  <div class="grid" style="margin-bottom:24px">
+    {% for i in inscricoes %}
+    <a class="card card-link" href="{{ i.torneio.get_absolute_url }}">
+      <h3>{{ i.torneio.nome }}</h3>
+      <span class="chip {{ i.torneio.status }}">{{ i.torneio.get_status_display }}</span>
+      <div class="info"><span><span class="material-symbols-outlined">event</span>{{ i.torneio.data_torneio|date:"d/m/Y" }}</span>
+        {% if i.cabeca_de_chave %}<span>Cabeça de chave {{ i.cabeca_de_chave }}</span>{% endif %}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Ainda não se inscreveu em nenhum torneio.</p>
+  {% endif %}
+
+  <h2>Partidas</h2>
+  {% if partidas %}
+  <div class="card tabela-wrap">
+    <table>
+      <thead><tr><th>Torneio</th><th>Fase</th><th>Adversário</th><th>Placar</th><th>Resultado</th></tr></thead>
+      <tbody>
+      {% for p in partidas %}
+        <tr>
+          <td><a href="{{ p.torneio.get_absolute_url }}?aba=chave">{{ p.torneio.nome }}</a></td>
+          <td>{{ p.get_rodada_display }}{% if p.grupo %} {{ p.grupo }}{% endif %}</td>
+          <td>{% if p.inscricao_1.jogador_id == jogador.pk %}{{ p.nome_2 }}{% else %}{{ p.nome_1 }}{% endif %}</td>
+          <td>{{ p.placar|default:"—" }}</td>
+          <td>
+            {% if not p.vencedor %}<span class="chip {{ p.status }}">{{ p.get_status_display }}</span>
+            {% elif p.vencedor.jogador_id == jogador.pk %}<span class="chip INSCRICOES">Vitória</span>
+            {% else %}<span class="chip CANCELADO">Derrota</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Nenhuma partida disputada.</p>
+  {% endif %}
+</main>
+{% endblock %}

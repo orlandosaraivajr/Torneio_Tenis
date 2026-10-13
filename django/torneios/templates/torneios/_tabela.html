@@ -1,0 +1,27 @@
+{# Tabela de classificação. Parâmetros: linhas, classificados (quantos avançam, opcional) #}
+<div class="tabela-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Jogador</th>
+      <th class="num" title="Jogos">J</th><th class="num" title="Vitórias">V</th><th class="num" title="Derrotas">D</th>
+      <th class="num" title="Sets pró-contra">Sets</th><th class="num" title="Saldo de sets">SS</th>
+      <th class="num" title="Saldo de games">SG</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in linhas %}
+    <tr class="{% if classificados and forloop.counter <= classificados %}classificado{% endif %}">
+      <td>{{ forloop.counter }}</td>
+      <td><a class="pessoa" href="{{ l.inscricao.jogador.get_absolute_url }}">{% include 'torneios/_avatar.html' with jogador=l.inscricao.jogador %}{{ l.inscricao.jogador.nome }}</a></td>
+      <td class="num">{{ l.jogos }}</td>
+      <td class="num"><b>{{ l.vitorias }}</b></td>
+      <td class="num">{{ l.derrotas }}</td>
+      <td class="num">{{ l.sets_pro }}-{{ l.sets_contra }}</td>
+      <td class="num">{{ l.saldo_sets }}</td>
+      <td class="num">{{ l.saldo_games }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

@@ -1,0 +1,43 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}Torneios{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <div class="cabecalho">
+    <h1>Torneios</h1>
+    <a class="btn" href="{% url 'torneio_novo' %}"><span class="material-symbols-outlined">add</span>Novo torneio</a>
+  </div>
+
+  <div class="filtros">
+    <a href="{% url 'torneio_lista' %}" class="{% if not status_atual %}ativo{% endif %}">Todos</a>
+    {% for valor, rotulo in status_choices %}
+    <a href="?status={{ valor }}" class="{% if status_atual == valor %}ativo{% endif %}">{{ rotulo }}</a>
+    {% endfor %}
+  </div>
+
+  {% if torneios %}
+  <div class="grid">
+    {% for t in torneios %}
+    <a class="card card-link" href="{{ t.get_absolute_url }}">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <h3>{{ t.nome }}</h3>
+        <span class="chip {{ t.status }}">{{ t.get_status_display }}</span>
+      </div>
+      <div class="muted">{{ t.get_formato_display }}</div>
+      <div class="info">
+        <span><span class="material-symbols-outlined">event</span>{{ t.data_torneio|date:"d/m/Y" }}</span>
+        <span><span class="material-symbols-outlined">location_on</span>{{ t.local }}</span>
+        <span><span class="material-symbols-outlined">group</span>{{ t.num_inscritos }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="vazio card">
+    <span class="material-symbols-outlined">sports_tennis</span>
+    Nenhum torneio encontrado.<br><br>
+    <a class="btn" href="{% url 'torneio_novo' %}">Criar o primeiro torneio</a>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

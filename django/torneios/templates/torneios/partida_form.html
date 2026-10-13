@@ -1,0 +1,20 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}Resultado da partida{% endblock %}
+
+{% block corpo %}
+<main class="conteudo">
+  <p class="muted"><a href="{{ destino }}">← {{ partida.torneio.nome }}</a></p>
+  <h1>{{ partida.get_rodada_display }}{% if partida.grupo %} · Grupo {{ partida.grupo }}{% endif %}{% if partida.jornada %} · Rodada {{ partida.jornada }}{% endif %}</h1>
+  <h2 class="muted">{{ partida.nome_1 }} <span style="color:var(--borda)">vs</span> {{ partida.nome_2 }}</h2>
+
+  <form method="post" class="card form-card">
+    {% csrf_token %}
+    <input type="hidden" name="voltar" value="{{ voltar }}">
+    {% include 'torneios/_campos.html' %}
+    <div class="form-acoes">
+      <a class="btn texto" href="{{ destino }}">Cancelar</a>
+      <button class="btn" type="submit">Salvar resultado</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends 'torneios/base.html' %}
+{% block titulo %}{{ torneio.nome }}{% endblock %}
+
+{% block corpo %}
+<main class="conteudo{% if aba == 'chave' %} largo{% endif %}">
+  <div class="cabecalho">
+    <div>
+      <h1>{{ torneio.nome }}</h1>
+      <span class="chip {{ torneio.status }}">{{ torneio.get_status_display }}</span>
+      <span class="chip">{{ torneio.get_formato_display }}</span>
+      <div class="info">
+        <span><span class="material-symbols-outlined">event</span>{{ torneio.data_torneio|date:"d/m/Y" }}</span>
+        <span><span class="material-symbols-outlined">location_on</span>{{ torneio.local }}</span>
+        {% if torneio.organizador %}<span><span class="material-symbols-outlined">person</span>{{ torneio.organizador.get_full_name|default:torneio.organizador.username }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="acoes">
+      <a class="btn secundario" href="{% url 'torneio_editar' torneio.pk %}"><span class="material-symbols-outlined">edit</span>Editar</a>
+      <form class="inline" method="post" action="{% url 'torneio_excluir' torneio.pk %}" onsubmit="return confirm('Excluir este torneio e todas as suas partidas?')">
+        {% csrf_token %}<button class="btn perigo" type="submit"><span class="material-symbols-outlined">delete</span>Excluir</button>
+      </form>
+    </div>
+  </div>
+
+  {% if campeao %}
+  <div class="campeao">
+    <span class="material-symbols-outlined trofeu">emoji_events</span>
+    <div><div class="muted">Campeão</div><div class="nome">{{ campeao.jogador.nome }}</div></div>
+  </div>
+  {% endif %}
+
+  {% with url=torneio.get_absolute_url %}
+  <nav class="abas">
+    <a href="{{ url }}?aba=visao" class="{% if aba == 'visao' %}ativo{% endif %}"><span class="material-symbols-outlined">info</span>Visão geral</a>
+    <a href="{{ url }}?aba=inscritos" class="{% if aba == 'inscritos' %}ativo{% endif %}"><span class="material-symbols-outlined">group</span>Inscritos <span class="contador">{{ inscricoes|length }}</span></a>
+    <a href="{{ url }}?aba=chave" class="{% if aba == 'chave' %}ativo{% endif %}"><span class="material-symbols-outlined">account_tree</span>{% if torneio.formato == 'RR' %}Rodadas{% elif torneio.formato == 'GRUPOS' %}Grupos e chave{% else %}Chave{% endif %}</a>
+    <a href="{{ url }}?aba=partidas" class="{% if aba == 'partidas' %}ativo{% endif %}"><span class="material-symbols-outlined">sports_tennis</span>Partidas</a>
+    {% if torneio.formato != 'ELIM' %}
+    <a href="{{ url }}?aba=classificacao" class="{% if aba == 'classificacao' %}ativo{% endif %}"><span class="material-symbols-outlined">leaderboard</span>Classificação</a>
+    {% endif %}
+  </nav>
+  {% endwith %}
+
+  {# ===================== VISÃO GERAL ===================== #}
+  {% if aba == 'visao' %}
+  <div class="card">
+    <h2>Próximo passo</h2>
+    {% if torneio.status == 'CANCELADO' %}
+      <p class="muted">Torneio cancelado.</p>
+    {% elif not tem_chave %}
+      {% if inscricoes|length < 2 %}
+        <p>Inscreva pelo menos 2 jogadores ({% if torneio.formato == 'GRUPOS' %}3 para fase de grupos{% else %}até 32 na chave{% endif %}).</p>
+        <a class="btn" href="?aba=inscritos"><span class="material-symbols-outlined">person_add</span>Inscrever jogadores</a>
+      {% else %}
+        <p>{{ inscricoes|length }} jogadores inscritos. Quando todos estiverem confirmados, gere a chave — as inscrições serão encerradas.</p>
+        <form method="post" action="{% url 'gerar_chave' torneio.pk %}">{% csrf_token %}
+          <button class="btn"><span class="material-symbols-outlined">account_tree</span>Gerar chave</button>
+        </form>
+      {% endif %}
+    {% elif grupos_concluidos %}
+      <p>A fase de grupos terminou. Os 2 primeiros de cada grupo avançam para o mata-mata.</p>
+      <form method="post" action="{% url 'gerar_mata_mata' torneio.pk %}">{% csrf_token %}
+        <button class="btn"><span class="material-symbols-outlined">account_tree</span>Gerar mata-mata</button>
+      </form>
+    {% elif torneio.status == 'FINALIZADO' %}
+      <p>Torneio encerrado{% if campeao %} — parabéns, <b>{{ campeao.jogador.nome }}</b>!{% endif %}</p>
+    {% else %}
+      <p>Registre os resultados clicando nas partidas da aba <a href="?aba=chave">{% if torneio.formato == 'RR' %}Rodadas{% else %}Chave{% endif %}</a>. Os vencedores avançam automaticamente.</p>
+    {% endif %}
+    {% if tem_chave %}
+      <div class="muted" style="margin-top:12px">{{ encerradas }} de {{ partidas|length }} partidas encerradas</div>
+      <div class="progresso"><div style="width:{% widthratio encerradas partidas|length 100 %}%"></div></div>
+    {% endif %}
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Descrição</h3>
+      <p class="muted">{{ torneio.descricao|default:"Sem descrição."|linebreaksbr }}</p>
+    </div>
+    <div class="card">
+      <h3>Premiação</h3>
+      <p class="muted">{{ torneio.premiacao|default:"Não informada." }}</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Regulamento</h3>
+    <p class="muted">{{ torneio.regulamento|default:"Não informado."|linebreaksbr }}</p>
+    {% if torneio.regulamento_arquivo %}
+      <a class="btn secundario" href="{{ torneio.regulamento_arquivo.url }}" target="_blank"><span class="material-symbols-outlined">description</span>Baixar regulamento</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# ===================== INSCRITOS ===================== #}
+  {% if aba == 'inscritos' %}
+  {% if inscricao_form %}
+  <form method="post" action="{% url 'inscrever' torneio.pk %}" class="card">
+    {% csrf_token %}
+    <h3>Inscrever jogador</h3>
+    <div class="form-linha">
+      {% for campo in inscricao_form %}
+      <div class="campo"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>
+      {% endfor %}
+      <button class="btn" type="submit"><span class="material-symbols-outlined">person_add</span>Inscrever</button>
+    </div>
+  </form>
+  {% elif tem_chave %}
+  <p class="muted">A chave já foi gerada; as inscrições estão encerradas.</p>
+  {% endif %}
+
+  {% if inscricoes %}
+  <div class="card tabela-wrap">
+    <table>
+      <thead><tr><th>Jogador</th><th class="num">Cabeça de chave</th>{% if torneio.formato == 'GRUPOS' %}<th class="num">Grupo</th>{% endif %}<th>Inscrito em</th><th></th></tr></thead>
+      <tbody>
+      {% for i in inscricoes %}
+        <tr>
+          <td><a class="pessoa" href="{{ i.jogador.get_absolute_url }}">{% include 'torneios/_avatar.html' with jogador=i.jogador %}{{ i.jogador.nome }}</a></td>
+          <td class="num">{{ i.cabeca_de_chave|default:"—" }}</td>
+          {% if torneio.formato == 'GRUPOS' %}<td class="num">{{ i.grupo|default:"—" }}</td>{% endif %}
+          <td class="muted">{{ i.data_inscricao|date:"d/m/Y H:i" }}</td>
+          <td style="text-align:right">
+            {% if torneio.aceita_inscricoes %}
+            <form class="inline" method="post" action="{% url 'remover_inscricao' i.pk %}">{% csrf_token %}
+              <button class="btn texto pequeno" type="submit" title="Remover inscrição"><span class="material-symbols-outlined">close</span></button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="material-symbols-outlined">group_add</span>Nenhum jogador inscrito ainda.</div>
+  {% endif %}
+  {% endif %}
+
+  {# ===================== CHAVE ===================== #}
+  {% if aba == 'chave' %}
+  {% if not tem_chave %}
+    <div class="vazio card">
+      <span class="material-symbols-outlined">account_tree</span>
+      A chave ainda não foi gerada.<br><br>
+      {% if inscricoes|length >= 2 %}
+      <form method="post" action="{% url 'gerar_chave' torneio.pk %}">{% csrf_token %}
+        <button class="btn">Gerar chave com {{ inscricoes|length }} jogadores</button>
+      </form>
+      {% else %}
+      <a class="btn" href="?aba=inscritos">Inscrever jogadores</a>
+      {% endif %}
+    </div>
+  {% else %}
+
+    {% if tem_mata_mata %}
+    <div class="chave-scroll">
+      <div class="chave">
+        {% for rodada in chave %}
+        <div class="chave-rodada">
+          <h3>{{ rodada.nome }}</h3>
+          <div class="chave-corpo">
+            {% for par in rodada.pares %}
+            <div class="par{% if par|length == 1 %} unica{% endif %}">
+              {% for p in par %}<div class="vaga">{% include 'torneios/_jogo.html' with partida=p voltar='chave' %}</div>{% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <div class="chave-rodada">
+          <h3>Campeão</h3>
+          <div class="chave-corpo"><div class="par unica"><div class="vaga">
+            <div class="jogo final"><div class="linha {% if campeao %}vencedor{% else %}indefinido{% endif %}">
+              <span class="material-symbols-outlined" style="color:var(--amarelo)">emoji_events</span>
+              <span class="nome">{% if campeao %}{{ campeao.jogador.nome }}{% else %}A definir{% endif %}</span>
+            </div></div>
+          </div></div></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if grupos_concluidos %}
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <span>Fase de grupos concluída! Os 2 primeiros de cada grupo avançam.</span>
+      <form method="post" action="{% url 'gerar_mata_mata' torneio.pk %}">{% csrf_token %}<button class="btn">Gerar mata-mata</button></form>
+    </div>
+    {% endif %}
+
+    {% if grupos %}
+    {% if tem_mata_mata %}<h2 style="margin-top:24px">Fase de grupos</h2>{% endif %}
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(440px,1fr))">
+      {% for g in grupos %}
+      <div class="card">
+        <h2>Grupo {{ g.letra }}</h2>
+        {% include 'torneios/_tabela.html' with linhas=g.tabela classificados=2 %}
+        <div class="lista-jogos" style="margin-top:16px">
+          {% for p in g.jogos %}{% include 'torneios/_jogo.html' with partida=p voltar='chave' %}{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if torneio.formato == 'RR' %}
+    {% regroup partidas by jornada as jornadas %}
+    {% for j in jornadas %}
+    <h3 style="margin-top:16px">Rodada {{ j.grouper }}</h3>
+    <div class="lista-jogos">
+      {% for p in j.list %}{% include 'torneios/_jogo.html' with partida=p voltar='chave' %}{% endfor %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if torneio.status != 'FINALIZADO' %}
+    <form method="post" action="{% url 'refazer_chave' torneio.pk %}" style="margin-top:32px"
+          onsubmit="return confirm('Apagar todas as partidas e resultados e reabrir as inscrições?')">
+      {% csrf_token %}
+      <button class="btn perigo pequeno"><span class="material-symbols-outlined">restart_alt</span>Refazer chave</button>
+    </form>
+    {% endif %}
+  {% endif %}
+  {% endif %}
+
+  {# ===================== PARTIDAS ===================== #}
+  {% if aba == 'partidas' %}
+  {% if partidas %}
+  <div class="card tabela-wrap">
+    <table>
+      <thead><tr><th>Fase</th><th>Jogador 1</th><th>Jogador 2</th><th>Placar</th><th>Status</th><th>Data/hora</th><th></th></tr></thead>
+      <tbody>
+      {% for p in partidas %}{% if not p.is_bye %}
+        <tr>
+          <td>{{ p.get_rodada_display }}{% if p.grupo %} {{ p.grupo }}{% endif %}{% if p.jornada %} · R{{ p.jornada }}{% endif %}</td>
+          <td>{% if p.vencedor_id and p.vencedor_id == p.inscricao_1_id %}<b>{{ p.nome_1 }}</b>{% else %}{{ p.nome_1 }}{% endif %}</td>
+          <td>{% if p.vencedor_id and p.vencedor_id == p.inscricao_2_id %}<b>{{ p.nome_2 }}</b>{% else %}{{ p.nome_2 }}{% endif %}</td>
+          <td>{{ p.placar|default:"—" }}</td>
+          <td><span class="chip {{ p.status }}">{{ p.get_status_display }}</span></td>
+          <td class="muted">{{ p.data_hora|date:"d/m/Y H:i"|default:"—" }}</td>
+          <td style="text-align:right">{% if p.editavel %}<a class="btn texto pequeno" href="{% url 'partida_resultado' p.pk %}?voltar=partidas"><span class="material-symbols-outlined">edit</span></a>{% endif %}</td>
+        </tr>
+      {% endif %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio"><span class="material-symbols-outlined">sports_tennis</span>Nenhuma partida ainda. Gere a chave para criar os jogos.</div>
+  {% endif %}
+  {% endif %}
+
+  {# ===================== CLASSIFICAÇÃO ===================== #}
+  {% if aba == 'classificacao' %}
+  {% if tabela_geral %}
+    <div class="card">{% include 'torneios/_tabela.html' with linhas=tabela_geral classificados=1 %}</div>
+  {% elif grupos %}
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(440px,1fr))">
+    {% for g in grupos %}
+      <div class="card"><h2>Grupo {{ g.letra }}</h2>{% include 'torneios/_tabela.html' with linhas=g.tabela classificados=2 %}</div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="vazio"><span class="material-symbols-outlined">leaderboard</span>A classificação aparece depois que a chave for gerada.</div>
+  {% endif %}
+  <p class="muted">Critérios: vitórias, saldo de sets, saldo de games.</p>
+  {% endif %}
+</main>
+{% endblock %}
